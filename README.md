@@ -1,6 +1,13 @@
 # Monitor Agent
 
-Monitor agent is the program run inline with the network for traffic to be monitored
+Monitor-Agent is a part of Ocellus, a service being built that allows users to analyze traffic and view packet data using a dashboard. 
+This agent is to be run in the users network and and registered to the service to view analytics such as flagged packets and events.
+Monitor-Agent views all packet data and only looks for signs of threat actors or malicious activity. Feel free to view what data is 
+taken from packets for analysis. There is an IDS engine that runs within the agent, it does require time (30 mins) to set up a baseline to reduce
+the chance of false positives.
+
+# Disclaimer
+AI is used in all parts of development. I do run many tests to validate the code works but I understand if that is a dealbreaker.
 
 # Notes
 Linux and macOS are untested as of 3/5/26
