@@ -1,0 +1,26 @@
+# monitor-agent — generates synthetic packets, streams to the gateway
+services:
+  monitor-agent:
+    build:
+      context: ./monitor-agent
+      dockerfile: Dockerfile
+    image: monitor-agent:dev
+    container_name: monitor-agent
+    restart: unless-stopped
+    depends_on:
+      api-gateway:
+        condition: service_started
+    environment:
+      RUST_LOG: ${RUST_LOG:-info}
+    command: >
+      --test-send
+      --agent-id agent-docker-01
+      --grpc-addr http://api-gateway:50051
+      --test-packets-per-tick 20
+      --test-tick-ms 200
+    networks:
+      - agent-net
+
+networks:
+  agent-net:
+    driver: bridge

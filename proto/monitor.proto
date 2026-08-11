@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+package monitor;
+
+import "google/protobuf/timestamp.proto";
+
+// Enums
+
+enum FlagReason {
+    FLAG_REASON_UNSPECIFIED = 0;
+    FLAG_REASON_PORT_SCAN = 1;
+    FLAG_REASON_SYN_FLOOD = 2;
+    FLAG_REASON_DNS_ANOMALY = 3;
+    FLAG_REASON_GEO_ANOMALY = 4;
+    FLAG_REASON_PAYLOAD_SIG = 5;
+    FLAG_REASON_RATE_EXCEEDED = 6;
+    FLAG_REASON_BLACKLISTED = 7;
+}
+
+enum Protocol {
+    PROTOCOL_UNSPECIFIED = 0;
+    PROTOCOL_TCP = 1;
+    PROTOCOL_UDP = 2;
+    PROTOCOL_ICMP = 3;
+    PROTOCOL_OTHER = 4;
+}
+
+// Packet event
+
+message PacketEvent {
+    string agent_id = 1;
+    google.protobuf.Timestamp captured_at = 2;
+    string src_ip = 3;
+    uint32 src_port = 4;
+    string dst_ip = 5;
+    uint32 dest_port = 6;
+    Protocol protocol = 7;
+    uint64 bytes = 8;
+    uint32 ttl = 9;
+    repeated string tcp_flags = 10;
+    FlagReason flag_reason = 11;
+    float anomaly_score = 12;
+    bytes payload_hash = 13; // blake3 hash
+    string interface = 14;
+    string direction = 15;
+}
+
+// Batch wrapper
+
+message PacketBatch {
+    repeated PacketEvent events = 1;
+    uint64 seq = 2;
+    string agent_id = 3;
+}
+
+message IngestAck {
+    uint64 seq = 1;
+    uint32 accepted = 2;
+    uint32 rejected = 3;
+    string message = 4;
+}
+
+// Heartbeat
+
+message AgentHeartbeat {
+    string agent_id = 1;
+    google.protobuf.Timestamp ts = 2;
+    uint64 packets_captured = 3;
+    uint64 packets_flagged = 4;
+    uint64 packets_dropped = 5;
+    float cpu_usage_pct = 6;
+    float mem_usage_mb = 7;
+    string agent_version = 8;
+    string hostname = 9;
+    string os_info = 10;
+}
+
+message HeartbeatAck {
+    bool ok = 1;
+    string message = 2;
+}
+
+// Registration
+
+message RegisterAgentRequest {
+    string token = 1;
+    string agent_id = 2;
+    string hostname = 3;
+    string os_info = 4;
+    string agent_version = 5;
+}
+
+message RegisterAgentResponse {
+    bool ok = 1;
+    string message = 2;
+}
+
+// Service
+
+service MonitorIngestion {
+    rpc IngestPackets(stream PacketBatch) returns (stream IngestAck);
+    rpc SendHeartbeat(AgentHeartbeat) returns (HeartbeatAck);
+    rpc RegisterAgent(RegisterAgentRequest) returns (RegisterAgentResponse);
+}
