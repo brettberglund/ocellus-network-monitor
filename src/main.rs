@@ -117,9 +117,9 @@ async fn main() -> anyhow::Result<()> {
         .unwrap_or("http://127.0.0.1:50051");
     info!(addr = grpc_addr, "connecting to ingestion service");
 
-    let channel = Channel::from_shared(grpc_addr.to_string())?
-        .connect()
-        .await?;
+    // Lazy connect: don't fail startup if the backend isn't reachable yet.
+    // The channel dials on first RPC and reconnects per-attempt after that.
+    let channel = Channel::from_shared(grpc_addr.to_string())?.connect_lazy();
 
     let packet_client = MonitorIngestionClient::new(channel.clone());
     let heartbeat_client = MonitorIngestionClient::new(channel.clone());

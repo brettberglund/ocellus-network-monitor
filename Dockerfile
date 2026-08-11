@@ -30,7 +30,7 @@ FROM builder AS tester
 
 FROM debian:bookworm-slim AS runtime
 
-RUN apt-get update \ 
+RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     libpcap0.8 \
     ca-certificates \
